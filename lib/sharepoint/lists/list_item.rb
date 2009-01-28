@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/defaultDriver.rb'
+require File.dirname(__FILE__) + '/../../builders/error_builder'
 
 module Sharepoint
   module Lists
@@ -35,16 +36,10 @@ module Sharepoint
       end
 
       def save
-        @list.driver.wiredump_dev = STDERR 
         batch_xml = get_batch_xml
-      
-        begin 
-          response = @list.driver.updateListItems(UpdateListItems.new(@list.list_name, batch_xml))
-          puts response.inspect
-        rescue Exception => ex
-          puts ex
-        end
-        @list.driver.wiredump_dev = STDERR if ENV['DEBUG'] 
+        response = @list.driver.updateListItems(UpdateListItems.new(@list.list_name, batch_xml))
+        error = Builders::ErrorBuilder.new.from_update_list_items_result(response)
+        puts error unless error.nil?
       end
 
       def get_batch_xml

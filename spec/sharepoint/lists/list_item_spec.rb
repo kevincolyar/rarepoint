@@ -1,11 +1,14 @@
+require File.dirname(__FILE__) + '/../../spec_helper'
 require File.dirname(__FILE__) + '/../../../lib/sharepoint/lists/list'
 require File.dirname(__FILE__) + '/../../../lib/sharepoint/lists/list_item'
 
 describe Sharepoint::Lists::ListItem do
 
   before(:each) do
-    @list = Sharepoint::Lists::List.new(:url => 'http://test.intranet/is/_vti_bin/Lists.asmx',
-                                        :name => '121E93D6-9054-4BE6-B79C-BF449AF43F4C')
+    @list = Sharepoint::Lists::List.new(:url => DEFAULT_URL,
+                                        :name => DEFAULT_LIST_NAME,
+                                        :username => DEFAULT_USERNAME,
+                                        :password => DEFAULT_PASSWORD)
     @list_items = @list.items_from(@list.default_view_url) 
     @list_item = @list_items.first
   end
@@ -15,6 +18,7 @@ describe Sharepoint::Lists::ListItem do
   end
 
   it 'should create a new list item' do 
+   @list.http_debugging = false
    list_item = Sharepoint::Lists::ListItem.new(:list => @list) 
    list_item.title = 'test'
    list_item.title.should == 'test'
@@ -28,7 +32,6 @@ describe Sharepoint::Lists::ListItem do
 
   it 'should change and save title' do 
     @list_item.Title.should_not == 'test'
-
     @list_item.Title = 'test'
     @list_item.save
   end

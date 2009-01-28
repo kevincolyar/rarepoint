@@ -1,11 +1,13 @@
 require File.dirname(__FILE__) + '/defaultDriver.rb'
+require 'rubygems'
+require 'activesupport'
 
 module Sharepoint
   module Lists
 
     class List
      
-      attr_accessor :list_name, :driver, :xml
+      attr_accessor :list_name, :driver, :xml, :http_debugging
 
       def initialize(args={})
         @driver = List.get_driver(args)
@@ -21,9 +23,9 @@ module Sharepoint
       def self.get_driver(args={})
         driver = ListsSoap.new(args[:url])
         driver.options["protocol.http.basic_auth"] << [args[:url], args[:username], args[:password]]
-        driver.wiredump_dev = STDERR if ENV['DEBUG']
         return driver
       end
+
 
       def init_remote_list
         response = @driver.getList(GetList.new(@list_name))
@@ -41,8 +43,6 @@ module Sharepoint
       end
 
       def items_from(args={})
-        puts "list_name: #{@list_name}"
-      #  @driver.wiredump_dev = STDERR 
         view = args[:view] 
         response = @driver.getListItems(GetListItems.new(@list_name, view))
         if response.getListItemsResult.listitems.data != "\n"
@@ -70,10 +70,22 @@ module Sharepoint
         @xml
       end
 
-      def xml_properties
+      def xml_attributes
         results = [] 
         @xml.methods.each {|i| results << i.gsub(/^xmlattr_/, '').underscore if i =~ /^xmlattr_\w*$/}
         return results
+      end
+
+      def http_debugging=(value)
+        if value == true
+          driver.wiredump_dev = STDERR unless driver.nil?
+        else
+          driver.wiredump_dev = nil unless driver.nil?
+        end
+      end
+
+      def http_debugging
+        return driver.wiredump_dev == STDERR
       end
 
     end
